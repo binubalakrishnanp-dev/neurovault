@@ -5,103 +5,66 @@ export default async (request) => {
   }
 
   try {
-    const {
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY,
-      SUPABASE_SECRET_KEY
-    } = process.env;
+    const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = process.env;
 
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !SUPABASE_SECRET_KEY) {
-      throw new Error("Server configuration is incomplete");
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      throw new Error("Missing server configuration");
     }
 
     const authorization = request.headers.get("authorization");
 
     if (!authorization?.startsWith("Bearer ")) {
-      return Response.json({ error: "Please sign in." }, { status: 401 });
+      return Response.json(
+        { error: "Please sign in." },
+        { status: 401 }
+      );
     }
 
-    const token = authorization.slice(7);
-    const userResponse = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    if (!userResponse.ok) {
-      return Response.json({ error: "Invalid session." }, { status: 401 });
-    }
-
-    const user = await userResponse.json();
-    const body = await request.json();
-    const { challenge_id, answer } = body;
+    const { challenge_id, answer } = await request.json();
 
     if (
       typeof challenge_id !== "string" ||
       typeof answer !== "string" ||
       answer.length > 500
     ) {
-      return Response.json({ error: "Invalid submission." }, { status: 400 });
+      return Response.json(
+        { error: "Invalid submission." },
+        { status: 400 }
+      );
     }
 
-    const headers = {
-      apikey: SUPABASE_SECRET_KEY,
-      Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
-      "Content-Type": "application/json"
-    };
-
-    const answerResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/challenge_answers?challenge_id=eq.${encodeURIComponent(challenge_id)}&select=answer`,
-      { headers }
-    );
-
-    if (!answerResponse.ok) {
-      throw new Error("Could not check answer");
-    }
-
-    const records = await answerResponse.json();
-    const correctAnswer = records[0]?.answer;
-
-    if (typeof correctAnswer !== "string") {
-      return Response.json({ error: "Challenge not found." }, { status: 404 });
-    }
-
-    const normalize = value =>
-      value.trim().toLowerCase().replace(/\s+/g, " ");
-
-    if (normalize(answer) !== normalize(correctAnswer)) {
-      return Response.json({ correct: false, message: "Not quite. Try again!" });
-    }
-
-    const completionResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/completions`,
+    const result = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/check_challenge_answer`,
       {
         method: "POST",
         headers: {
-          ...headers,
-          Prefer: "return=minimal"
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: authorization,
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          player_id: user.id,
-          challenge_id
+          p_challenge_id: challenge_id,
+          p_answer: answer
         })
       }
     );
 
-    if (!completionResponse.ok) {
-      throw new Error("Could not save completion");
+    const data = await result.json();
+
+    if (!result.ok) {
+      return Response.json(
+        { error: "Answer checking failed." },
+        { status: result.status }
+      );
     }
 
-    return Response.json({
-      correct: true,
-      message: "Challenge completed!"
-    });
+    return Response.json(data);
 
   } catch {
     return Response.json(
-      { error: "Something went wrong. Please try again." },
+      { error: "Something went wrong." },
       { status: 500 }
     );
   }
 };
+
