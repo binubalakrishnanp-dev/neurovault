@@ -98,7 +98,7 @@ input{
 const SUPABASE_URL = "https://ybswkkdzvlgkniuftffv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wFDBBh6ZLbhirAn53XhYHA_Z0Tkz4Da";
 
-const supabase = window.supabase.createClient(
+const client = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
@@ -106,10 +106,21 @@ const supabase = window.supabase.createClient(
 const login = document.getElementById("login");
 const dashboard = document.getElementById("dashboard");
 const message = document.getElementById("message");
+const loginBtn = document.getElementById("loginBtn");
+
+function showMessage(text) {
+  message.textContent = text;
+}
+
+function showLogin(text) {
+  login.classList.remove("hidden");
+  dashboard.classList.add("hidden");
+  showMessage(text);
+}
 
 async function checkOwner() {
   const { data: { session }, error } =
-    await supabase.auth.getSession();
+    await client.auth.getSession();
 
   if (error || !session) {
     showLogin("Please sign in.");
@@ -117,10 +128,15 @@ async function checkOwner() {
   }
 
   const { data, error: roleError } =
-    await supabase.rpc("is_owner");
+    await client.rpc("is_owner");
 
-  if (roleError || data !== true) {
-    showLogin("Owner access denied. Your account is not verified.");
+  if (roleError) {
+    showLogin("Verification error: " + roleError.message);
+    return;
+  }
+
+  if (data !== true) {
+    showLogin("Owner access denied.");
     return;
   }
 
@@ -128,36 +144,32 @@ async function checkOwner() {
   dashboard.classList.remove("hidden");
 }
 
-function showLogin(text) {
-  login.classList.remove("hidden");
-  dashboard.classList.add("hidden");
-  message.textContent = text;
-}
+loginBtn.addEventListener("click", async () => {
+  loginBtn.disabled = true;
+  showMessage("Signing in...");
 
-document.getElementById("loginBtn").onclick = async () => {
-  message.textContent = "Signing in...";
+  try {
+    const { error } = await client.auth.signInWithPassword({
+      email: document.getElementById("email").value.trim(),
+      password: document.getElementById("password").value
+    });
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: document.getElementById("email").value,
-    password: document.getElementById("password").value
-  });
+    if (error) {
+      showMessage(error.message);
+      return;
+    }
 
-  if (error) {
-    message.textContent = error.message;
-    return;
+    await checkOwner();
+  } catch (error) {
+    showMessage("Something went wrong: " + error.message);
+  } finally {
+    loginBtn.disabled = false;
   }
+});
 
-  await checkOwner();
-};
-
-document.getElementById("logoutBtn").onclick = async () => {
-  await supabase.auth.signOut();
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await client.auth.signOut();
   showLogin("You have signed out.");
-};
-
-supabase.auth.onAuthStateChange((_event, session) => {
-  if (!session) showLogin("Please sign in.");
-  else checkOwner();
 });
 
 checkOwner();
