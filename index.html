@@ -2,309 +2,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEUROVAULT | Your Mind. Your Mission.</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #070b18;
-      color: #eafaff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      padding: 24px 8%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #172844;
-    }
-
-    .logo {
-      color: #36eaff;
-      font-size: 25px;
-      font-weight: 900;
-      letter-spacing: 4px;
-      text-shadow: 0 0 15px #00d9ff;
-    }
-
-    .status {
-      color: #a8b8d8;
-      font-size: 12px;
-    }
-
-    main {
-      width: 90%;
-      max-width: 1050px;
-      margin: auto;
-      padding: 55px 0;
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 45px;
-      align-items: center;
-    }
-
-    h1 {
-      font-size: clamp(42px, 7vw, 76px);
-      line-height: 1;
-      margin: 15px 0;
-      letter-spacing: -3px;
-    }
-
-    h1 span { color: #39eaff; }
-
-    .intro {
-      color: #9aabc9;
-      line-height: 1.8;
-      max-width: 490px;
-    }
-
-    .tagline {
-      color: #c58cff;
-      letter-spacing: 3px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .panel {
-      background: #101a30;
-      border: 1px solid #254365;
-      border-radius: 18px;
-      padding: 28px;
-      box-shadow: 0 0 35px #00cfff12;
-    }
-
-    .panel h2 {
-      margin-top: 0;
-      color: #48eaff;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin: 9px 0;
-      border-radius: 8px;
-      border: 1px solid #304564;
-      background: #080f20;
-      color: white;
-      outline: none;
-    }
-
-    input:focus { border-color: #36eaff; }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      border: 0;
-      border-radius: 8px;
-      background: #35dff3;
-      color: #06111c;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover { background: #a1f7ff; }
-
-    button.secondary {
-      background: #222c48;
-      color: white;
-      border: 1px solid #7653a8;
-    }
-
-    .switch {
-      color: #a8b8d8;
-      text-align: center;
-      font-size: 13px;
-      margin-top: 18px;
-    }
-
-    .switch a {
-      color: #45eaff;
-      cursor: pointer;
-    }
-
-    #message {
-      color: #c58cff;
-      font-size: 13px;
-      min-height: 20px;
-      margin-top: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    footer {
-      text-align: center;
-      padding: 22px;
-      color: #60718f;
-      font-size: 11px;
-      letter-spacing: 2px;
-    }
-
-    .watermark {
-      position: fixed;
-      bottom: 9px;
-      right: 12px;
-      color: #8293b5;
-      opacity: 0.35;
-      font-size: 10px;
-      letter-spacing: 1px;
-      pointer-events: none;
-    }
-
-    @media(max-width: 750px) {
-      main {
-        grid-template-columns: 1fr;
-        gap: 30px;
-      }
-      header { padding: 20px 5%; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEUROVAULT</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#070b18;color:#eafaff;font-family:Arial,sans-serif}
+header{padding:22px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #20314e}
+.logo{color:#36eaff;font-size:24px;font-weight:900;letter-spacing:4px;text-shadow:0 0 15px #00d9ff}
+button{padding:13px 18px;border:0;border-radius:8px;background:#35dff3;color:#06111c;font-weight:bold;cursor:pointer}
+button:hover{background:#a1f7ff}
+input{width:100%;padding:14px;margin:9px 0;border-radius:8px;border:1px solid #304564;background:#080f20;color:white}
+main{width:90%;max-width:1100px;margin:55px auto}
+.panel{background:#101a30;border:1px solid #254365;border-radius:16px;padding:25px;box-shadow:0 0 25px #00cfff12}
+h1{font-size:clamp(38px,6vw,65px);margin:15px 0}
+h1 span,.cyan{color:#39eaff}
+.muted{color:#9aabc9;line-height:1.7}
+.tagline{color:#c58cff;letter-spacing:3px;font-size:12px;font-weight:bold}
+#authPage{max-width:480px;margin:70px auto}
+#authPage h1{font-size:38px}
+#message{color:#c58cff;min-height:22px;font-size:13px;overflow-wrap:anywhere}
+#dashboard{display:none}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:25px}
+.stat{font-size:30px;color:#39eaff;font-weight:bold;margin:12px 0}
+.card-title{color:#c58cff;letter-spacing:2px;font-size:12px;font-weight:bold}
+.challenge{margin-top:24px;border-color:#37617d}
+.nav{display:flex;gap:10px;flex-wrap:wrap;margin:25px 0}
+.nav button{background:#172640;color:#dffaff;border:1px solid #315174}
+.nav button.active{background:#35dff3;color:#06111c}
+.section{display:none}
+.section.active{display:block}
+footer{text-align:center;padding:25px;color:#60718f;font-size:11px;letter-spacing:2px}
+.watermark{position:fixed;bottom:9px;right:12px;color:#8293b5;opacity:.35;font-size:10px;pointer-events:none}
+@media(max-width:700px){.grid{grid-template-columns:1fr}header{padding:18px 5%}main{margin:35px auto}}
+</style>
 </head>
-
 <body>
-  <header>
-    <div class="logo">NEUROVAULT</div>
-    <div class="status">SYSTEM ONLINE // ACCESS PORTAL</div>
-  </header>
 
-  <main>
-    <section>
-      <div class="tagline">YOUR MIND. YOUR MISSION. YOUR STREAK.</div>
-      <h1>ENTER THE<br><span>UNKNOWN.</span></h1>
-      <p class="intro">
-        Welcome to NEUROVAULT. A world of riddles, mysteries,
-        logic challenges and mind-bending puzzles.
-        Think differently. Solve the impossible. Build your streak.
-      </p>
-    </section>
+<header>
+  <div class="logo">NEUROVAULT</div>
+  <div id="headerAction"></div>
+</header>
 
-    <section class="panel">
-      <h2 id="formTitle">Access the Vault</h2>
+<main>
+  <section id="authPage" class="panel">
+    <div class="tagline">YOUR MIND. YOUR MISSION. YOUR STREAK.</div>
+    <h1>ENTER THE <span>UNKNOWN.</span></h1>
+    <p class="muted">Riddles. Mysteries. Logic. Think differently and unlock the vault.</p>
 
-      <form id="authForm">
-        <input id="email" type="email"
-          placeholder="Email address" required>
+    <form id="authForm">
+      <input id="email" type="email" placeholder="Email address" required>
+      <input id="password" type="password" placeholder="Password" minlength="6" required>
+      <button id="submitButton" type="submit" style="width:100%">CREATE ACCOUNT</button>
+    </form>
 
-        <input id="password" type="password"
-          placeholder="Password" minlength="6" required>
+    <button id="googleButton" style="width:100%;margin-top:10px">CONTINUE WITH GOOGLE</button>
+    <p class="muted" style="text-align:center;font-size:13px">
+      <span id="switchText">Already registered?</span>
+      <a id="switchMode" href="#" style="color:#39eaff">Sign in</a>
+    </p>
+    <p id="message" role="status"></p>
+  </section>
 
-        <button type="submit" id="submitButton">
-          CREATE ACCOUNT
-        </button>
-      </form>
+  <section id="dashboard">
+    <div class="tagline">SYSTEM ONLINE // PLAYER ACCESS GRANTED</div>
+    <h1>WELCOME TO THE <span>VAULT.</span></h1>
+    <p class="muted">Welcome, <strong id="playerEmail"></strong>. Your next mission awaits.</p>
 
-      <button class="secondary" id="googleButton">
-        CONTINUE WITH GOOGLE
-      </button>
-
-      <div class="switch">
-        <span id="switchText">Already registered?</span>
-        <a id="switchMode">Sign in</a>
+    <div class="grid">
+      <div class="panel">
+        <div class="card-title">PLAYER XP</div>
+        <div class="stat">0 XP</div>
+        <p class="muted">Your journey starts here.</p>
       </div>
+      <div class="panel">
+        <div class="card-title">DAILY STREAK</div>
+        <div class="stat">0 🔥</div>
+        <p class="muted">Complete all daily challenges to build your streak.</p>
+      </div>
+      <div class="panel">
+        <div class="card-title">PLAYER LEVEL</div>
+        <div class="stat">LEVEL 1</div>
+        <p class="muted">More missions. More progress.</p>
+      </div>
+    </div>
 
-      <p id="message" role="status"></p>
+    <div class="nav">
+      <button class="active" data-section="missions">MISSIONS</button>
+      <button data-section="profile">PROFILE</button>
+      <button data-section="friends">FRIENDS</button>
+    </div>
+
+    <section id="missions" class="section active">
+      <div class="panel challenge">
+        <div class="card-title">TODAY'S MISSION</div>
+        <h2>THE VAULT IS WAITING</h2>
+        <p class="muted">Daily puzzles are coming soon. The owner will add challenges here.</p>
+        <button disabled style="opacity:.5;cursor:not-allowed">MISSIONS COMING SOON</button>
+      </div>
     </section>
-  </main>
 
-  <footer>NEUROVAULT // THE GAME HAS JUST BEGUN</footer>
-  <div class="watermark">Anirudh Binu</div>
+    <section id="profile" class="section">
+      <div class="panel">
+        <div class="card-title">PLAYER PROFILE</div>
+        <h2>Your account</h2>
+        <p class="muted">Email: <span id="profileEmail"></span></p>
+        <p class="muted">Public player profiles are coming soon.</p>
+      </div>
+    </section>
 
-  <script>
-    const SUPABASE_URL = "https://ybswkkdzvlgkniuftffv.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wFDBBh6ZLbhirAn53XhYHA_Z0Tkz4Da";
+    <section id="friends" class="section">
+      <div class="panel">
+        <div class="card-title">YOUR NETWORK</div>
+        <h2>FRIENDS</h2>
+        <p class="muted">Player discovery and friend requests are coming soon.</p>
+      </div>
+    </section>
+  </section>
+</main>
 
-    const message = document.getElementById("message");
-    const form = document.getElementById("authForm");
+<footer>NEUROVAULT // YOUR MIND. YOUR MISSION.</footer>
+<div class="watermark">Anirudh Binu</div>
 
-    let isSignup = true;
-    let supabaseClient = null;
+<script>
+const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+const SUPABASE_PUBLISHABLE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
 
-    if (
-      window.supabase &&
-      !SUPABASE_URL.startsWith("YOUR_") &&
-      !SUPABASE_PUBLISHABLE_KEY.startsWith("YOUR_")
-    ) {
-      supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-      );
-    } else {
-      message.textContent =
-        "Setup required: add your Supabase URL and Publishable Key.";
-    }
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
-    document.getElementById("switchMode").onclick = () => {
-      isSignup = !isSignup;
+let isSignup = true;
 
-      document.getElementById("formTitle").textContent =
-        isSignup ? "Access the Vault" : "Welcome Back";
+const authPage = document.getElementById("authPage");
+const dashboard = document.getElementById("dashboard");
+const message = document.getElementById("message");
 
-      document.getElementById("submitButton").textContent =
-        isSignup ? "CREATE ACCOUNT" : "SIGN IN";
+function showDashboard(user) {
+  authPage.style.display = "none";
+  dashboard.style.display = "block";
+  document.getElementById("playerEmail").textContent = user.email || "Player";
+  document.getElementById("profileEmail").textContent = user.email || "Player";
 
-      document.getElementById("switchText").textContent =
-        isSignup ? "Already registered?" : "New to NEUROVAULT?";
+  document.getElementById("headerAction").innerHTML =
+    '<button id="logoutButton">SIGN OUT</button>';
 
-      document.getElementById("switchMode").textContent =
-        isSignup ? "Sign in" : "Create account";
+  document.getElementById("logoutButton").onclick = async () => {
+    await client.auth.signOut();
+  };
+}
 
-      message.textContent = "";
-    };
+function showLogin() {
+  dashboard.style.display = "none";
+  authPage.style.display = "block";
+  document.getElementById("headerAction").innerHTML = "";
+}
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
+document.getElementById("switchMode").onclick = (event) => {
+  event.preventDefault();
+  isSignup = !isSignup;
+  document.getElementById("submitButton").textContent =
+    isSignup ? "CREATE ACCOUNT" : "SIGN IN";
+  document.getElementById("switchText").textContent =
+    isSignup ? "Already registered?" : "New to NEUROVAULT?";
+  document.getElementById("switchMode").textContent =
+    isSignup ? "Sign in" : "Create account";
+  message.textContent = "";
+};
 
-      if (!supabaseClient) {
-        message.textContent = "Supabase connection is not configured yet.";
-        return;
-      }
+document.getElementById("authForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  message.textContent = "Connecting...";
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
-      message.textContent = "Connecting...";
+  const result = isSignup
+    ? await client.auth.signUp({email, password})
+    : await client.auth.signInWithPassword({email, password});
 
-      const result = isSignup
-        ? await supabaseClient.auth.signUp({ email, password })
-        : await supabaseClient.auth.signInWithPassword({ email, password });
+  if (result.error) {
+    message.textContent = result.error.message;
+    return;
+  }
 
-      if (result.error) {
-        message.textContent = result.error.message;
-        return;
-      }
+  if (result.data.session) {
+    showDashboard(result.data.user);
+  } else {
+    message.textContent = "Account created! Check your email to confirm it.";
+  }
+});
 
-      message.textContent = isSignup
-        ? "Account created! Check your email if confirmation is required."
-        : "Signed in successfully! Your account is connected.";
-    });
+document.getElementById("googleButton").onclick = async () => {
+  const {error} = await client.auth.signInWithOAuth({
+    provider: "google",
+    options: {redirectTo: window.location.origin}
+  });
+  if (error) message.textContent = error.message;
+};
 
-    document.getElementById("googleButton").onclick = async () => {
-      if (!supabaseClient) {
-        message.textContent = "Supabase connection is not configured yet.";
-        return;
-      }
+document.querySelectorAll(".nav button").forEach(button => {
+  button.onclick = () => {
+    document.querySelectorAll(".nav button").forEach(item =>
+      item.classList.remove("active")
+    );
+    document.querySelectorAll(".section").forEach(item =>
+      item.classList.remove("active")
+    );
+    button.classList.add("active");
+    document.getElementById(button.dataset.section).classList.add("active");
+  };
+});
 
-      message.textContent = "Connecting to Google...";
+client.auth.onAuthStateChange((event, session) => {
+  if (session?.user) showDashboard(session.user);
+  else showLogin();
+});
 
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-
-      if (error) message.textContent = error.message;
-    };
-  </script>
+client.auth.getSession().then(({data}) => {
+  if (data.session?.user) showDashboard(data.session.user);
+  else showLogin();
+});
+</script>
 </body>
 </html>
-
