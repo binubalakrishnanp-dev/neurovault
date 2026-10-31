@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEUROVAULT | Owner Command Center</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;background:#070b18;color:#eaf6ff;
+  font-family:Arial,sans-serif;min-height:100vh;
+}
+header{
+  padding:22px 7%;border-bottom:1px solid #19334c;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.logo{color:#27dfff;font-weight:900;letter-spacing:3px}
+main{max-width:1000px;margin:55px auto;padding:20px}
+.panel{
+  background:#101a2d;border:1px solid #17445d;
+  border-radius:16px;padding:28px;margin-bottom:20px;
+}
+h1{color:#27dfff;letter-spacing:2px}
+h2{font-size:18px}
+p{color:#9eb4c9;line-height:1.6}
+button{
+  background:#13cce8;color:#04101b;border:0;
+  padding:12px 20px;border-radius:8px;
+  font-weight:bold;cursor:pointer;margin-top:12px;
+}
+button:hover{background:#7aeaff}
+input{
+  width:100%;padding:13px;margin-top:10px;
+  border-radius:8px;border:1px solid #24516b;
+  background:#071321;color:white;
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px}
+.tile{background:#0b2236;border:1px solid #1b5871;padding:22px;border-radius:12px}
+.hidden{display:none}
+#message{color:#27dfff;margin-top:15px}
+.watermark{
+  position:fixed;bottom:12px;right:16px;
+  color:#527084;font-size:11px;opacity:.65;
+  pointer-events:none;letter-spacing:1px
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">NEUROVAULT</div>
+  <div>OWNER ACCESS</div>
+</header>
+
+<main>
+  <section id="login" class="panel">
+    <h1>COMMAND CENTER</h1>
+    <p>Authenticate with your NEUROVAULT owner account.</p>
+    <input id="email" type="email" placeholder="Owner email">
+    <input id="password" type="password" placeholder="Password">
+    <button id="loginBtn">SIGN IN</button>
+    <p id="message">Waiting for authentication...</p>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="panel">
+      <h1>WELCOME, OWNER.</h1>
+      <p>Owner access verified by the NEUROVAULT database.</p>
+      <button id="logoutBtn">SIGN OUT</button>
+    </div>
+
+    <div class="grid">
+      <div class="tile">
+        <h2>🧩 Challenge Manager</h2>
+        <p>Create and manage daily puzzles.</p>
+      </div>
+      <div class="tile">
+        <h2>👥 Player Manager</h2>
+        <p>Manage registered player accounts.</p>
+      </div>
+      <div class="tile">
+        <h2>📊 Activity Monitor</h2>
+        <p>Review player activity and progress.</p>
+      </div>
+      <div class="tile">
+        <h2>📅 Daily Missions</h2>
+        <p>Manage daily challenge releases.</p>
+      </div>
+    </div>
+    <p id="dashboardMessage"></p>
+  </section>
+</main>
+
+<div class="watermark">Anirudh Binu</div>
+
+<script>
+const SUPABASE_URL = "https://ybswkkdzvlgkniuftffv.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wFDBBh6ZLbhirAn53XhYHA_Z0Tkz4Da";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const login = document.getElementById("login");
+const dashboard = document.getElementById("dashboard");
+const message = document.getElementById("message");
+
+async function checkOwner() {
+  const { data: { session }, error } =
+    await supabase.auth.getSession();
+
+  if (error || !session) {
+    showLogin("Please sign in.");
+    return;
+  }
+
+  const { data, error: roleError } =
+    await supabase.rpc("is_owner");
+
+  if (roleError || data !== true) {
+    showLogin("Owner access denied. Your account is not verified.");
+    return;
+  }
+
+  login.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+}
+
+function showLogin(text) {
+  login.classList.remove("hidden");
+  dashboard.classList.add("hidden");
+  message.textContent = text;
+}
+
+document.getElementById("loginBtn").onclick = async () => {
+  message.textContent = "Signing in...";
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  await checkOwner();
+};
+
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabase.auth.signOut();
+  showLogin("You have signed out.");
+};
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  if (!session) showLogin("Please sign in.");
+  else checkOwner();
+});
+
+checkOwner();
+</script>
+</body>
+</html>
