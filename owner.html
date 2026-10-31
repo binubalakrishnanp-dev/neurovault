@@ -3,176 +3,612 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEUROVAULT | Owner Command Center</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
+:root {
+  --bg:#070b18;
+  --panel:#101a2d;
+  --panel2:#0b2236;
+  --cyan:#25d9ff;
+  --purple:#9b72ff;
+  --text:#eaf6ff;
+  --muted:#91a9c0;
+  --border:#1b4059;
+}
 *{box-sizing:border-box}
-body{
-  margin:0;background:#070b18;color:#eaf6ff;
+body {
+  margin:0;background:var(--bg);color:var(--text);
   font-family:Arial,sans-serif;min-height:100vh;
 }
-header{
-  padding:22px 7%;border-bottom:1px solid #19334c;
+header {
   display:flex;justify-content:space-between;align-items:center;
+  padding:18px 5%;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:#070b18ee;z-index:5;
 }
-.logo{color:#27dfff;font-weight:900;letter-spacing:3px}
-main{max-width:1000px;margin:55px auto;padding:20px}
-.panel{
-  background:#101a2d;border:1px solid #17445d;
-  border-radius:16px;padding:28px;margin-bottom:20px;
+.logo{font-weight:900;letter-spacing:3px;color:var(--cyan)}
+main{max-width:1200px;margin:auto;padding:30px 20px 80px}
+h1{color:var(--cyan);letter-spacing:2px}
+h2{font-size:19px}
+p{color:var(--muted);line-height:1.5}
+.panel {
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:15px;padding:22px;margin-bottom:20px;
 }
-h1{color:#27dfff;letter-spacing:2px}
-h2{font-size:18px}
-p{color:#9eb4c9;line-height:1.6}
-button{
-  background:#13cce8;color:#04101b;border:0;
-  padding:12px 20px;border-radius:8px;
-  font-weight:bold;cursor:pointer;margin-top:12px;
+input,select,textarea {
+  width:100%;padding:12px;margin:7px 0 14px;
+  background:#071321;color:white;border:1px solid #28516c;
+  border-radius:8px;font:inherit;
 }
-button:hover{background:#7aeaff}
-input{
-  width:100%;padding:13px;margin-top:10px;
-  border-radius:8px;border:1px solid #24516b;
-  background:#071321;color:white;
+textarea{min-height:90px;resize:vertical}
+label{font-size:13px;color:#b8d4e7}
+button {
+  border:0;border-radius:8px;padding:11px 16px;
+  background:var(--cyan);color:#04101b;font-weight:bold;
+  cursor:pointer;margin:4px;
 }
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px}
-.tile{background:#0b2236;border:1px solid #1b5871;padding:22px;border-radius:12px}
-.hidden{display:none}
-#message{color:#27dfff;margin-top:15px}
-.watermark{
+button:hover{filter:brightness(1.15)}
+button.secondary{background:#263c55;color:white}
+button.danger{background:#9d334f;color:white}
+button:disabled{opacity:.5;cursor:not-allowed}
+.hidden{display:none!important}
+.grid {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:14px;margin:20px 0;
+}
+.tile {
+  background:var(--panel2);border:1px solid var(--border);
+  padding:20px;border-radius:13px;cursor:pointer;
+  transition:.2s;
+}
+.tile:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.tile .number{font-size:28px;color:var(--cyan);font-weight:bold}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+.tabs button{background:#17283d;color:white}
+.tabs button.active{background:var(--cyan);color:#04101b}
+.section{display:none}
+.section.active{display:block}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th,td{text-align:left;padding:12px;border-bottom:1px solid var(--border);font-size:13px}
+th{color:var(--cyan)}
+.status{color:#58e6a0;font-weight:bold}
+#message{color:var(--cyan);min-height:22px}
+.watermark {
   position:fixed;bottom:12px;right:16px;
-  color:#527084;font-size:11px;opacity:.65;
-  pointer-events:none;letter-spacing:1px
+  color:#7794a9;font-size:11px;opacity:.65;
+  pointer-events:none;letter-spacing:1px;z-index:10;
 }
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
 </style>
 </head>
+
 <body>
 <header>
   <div class="logo">NEUROVAULT</div>
-  <div>OWNER ACCESS</div>
+  <div>
+    <span style="color:#25d9ff">OWNER COMMAND</span>
+    <button id="logoutBtn" class="secondary hidden">SIGN OUT</button>
+  </div>
 </header>
 
 <main>
-  <section id="login" class="panel">
+  <!-- LOGIN -->
+  <section id="loginPanel" class="panel">
     <h1>COMMAND CENTER</h1>
     <p>Authenticate with your NEUROVAULT owner account.</p>
-    <input id="email" type="email" placeholder="Owner email">
-    <input id="password" type="password" placeholder="Password">
+
+    <label>Email</label>
+    <input id="email" type="email" autocomplete="username">
+
+    <label>Password</label>
+    <input id="password" type="password" autocomplete="current-password">
+
     <button id="loginBtn">SIGN IN</button>
-    <p id="message">Waiting for authentication...</p>
+    <p id="loginMessage">Waiting for authentication...</p>
   </section>
 
-  <section id="dashboard" class="hidden">
+  <!-- DASHBOARD -->
+  <section id="app" class="hidden">
     <div class="panel">
       <h1>WELCOME, OWNER.</h1>
-      <p>Owner access verified by the NEUROVAULT database.</p>
-      <button id="logoutBtn">SIGN OUT</button>
+      <p>NEUROVAULT administration command center.</p>
+      <p class="status">● OWNER ACCESS VERIFIED</p>
+      <p id="welcomeEmail"></p>
+      <button id="refreshBtn" class="secondary">↻ REFRESH DATA</button>
+      <p id="appMessage"></p>
     </div>
 
     <div class="grid">
-      <div class="tile">
+      <div class="tile" data-section="challenges">
+        <div class="number" id="challengeCount">0</div>
         <h2>🧩 Challenge Manager</h2>
-        <p>Create and manage daily puzzles.</p>
+        <p>Create, edit, publish and delete puzzles.</p>
       </div>
-      <div class="tile">
+
+      <div class="tile" data-section="players">
+        <div class="number" id="playerCount">0</div>
         <h2>👥 Player Manager</h2>
-        <p>Manage registered player accounts.</p>
+        <p>View registered player profiles.</p>
       </div>
-      <div class="tile">
+
+      <div class="tile" data-section="activity">
+        <div class="number" id="activityCount">0</div>
         <h2>📊 Activity Monitor</h2>
-        <p>Review player activity and progress.</p>
+        <p>Review recorded player activity.</p>
       </div>
-      <div class="tile">
+
+      <div class="tile" data-section="missions">
+        <div class="number" id="completionCount">0</div>
         <h2>📅 Daily Missions</h2>
-        <p>Manage daily challenge releases.</p>
+        <p>Publish and manage daily challenges.</p>
       </div>
     </div>
-    <p id="dashboardMessage"></p>
+
+    <div class="tabs">
+      <button class="active" data-section="challenges">Challenges</button>
+      <button data-section="players">Players</button>
+      <button data-section="activity">Activity</button>
+      <button data-section="missions">Daily Missions</button>
+    </div>
+
+    <!-- CHALLENGES -->
+    <section id="challenges" class="section active">
+      <div class="panel">
+        <h2>🧩 Challenge Manager</h2>
+        <p>Create a challenge or select an existing one to edit.</p>
+
+        <form id="challengeForm">
+          <input type="hidden" id="challengeId">
+
+          <label>Challenge title</label>
+          <input id="title" maxlength="150" required placeholder="Example: The Missing Number">
+
+          <div class="form-grid">
+            <div>
+              <label>Category</label>
+              <select id="category">
+                <option>Riddles</option>
+                <option>Code Breakers</option>
+                <option>Math &amp; Logic</option>
+                <option>Word Puzzles</option>
+                <option>Pattern Tests</option>
+                <option>Sudoku</option>
+              </select>
+            </div>
+            <div>
+              <label>Difficulty</label>
+              <select id="difficulty">
+                <option>Easy</option>
+                <option>Medium</option>
+                <option>Hard</option>
+              </select>
+            </div>
+          </div>
+
+          <label>Instructions</label>
+          <textarea id="instructions" required placeholder="Explain the puzzle to players..."></textarea>
+
+          <label>Optional hint</label>
+          <input id="hint" placeholder="A small clue...">
+
+          <label>Correct answer (private)</label>
+          <input id="answer" required maxlength="500" placeholder="Only stored in the protected answers table">
+
+          <label>Challenge date</label>
+          <input id="challengeDate" type="date" required>
+
+          <label>
+            <input id="published" type="checkbox" style="width:auto">
+            Publish challenge
+          </label>
+
+          <div>
+            <button type="submit" id="saveBtn">SAVE CHALLENGE</button>
+            <button type="button" class="secondary" id="clearBtn">CLEAR FORM</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Existing Challenges</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Title</th><th>Category</th><th>Difficulty</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="challengeRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAYERS -->
+    <section id="players" class="section">
+      <div class="panel">
+        <h2>👥 Player Manager</h2>
+        <p>Registered player profiles. Private email addresses and passwords are not displayed.</p>
+        <input id="playerSearch" placeholder="Search username or display name...">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Username</th><th>Display name</th><th>Bio</th><th>Discoverable</th><th>Joined</th></tr></thead>
+            <tbody id="playerRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTIVITY -->
+    <section id="activity" class="section">
+      <div class="panel">
+        <h2>📊 Activity Monitor</h2>
+        <p>Recorded events currently include successful puzzle completions.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Player ID</th><th>Event</th><th>Challenge ID</th><th>Time</th></tr></thead>
+            <tbody id="activityRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- DAILY MISSIONS -->
+    <section id="missions" class="section">
+      <div class="panel">
+        <h2>📅 Daily Missions</h2>
+        <p>Choose a date to see its scheduled challenges. Use the Challenge Manager to create or publish them.</p>
+        <label>Choose mission date</label>
+        <input type="date" id="missionDate">
+        <button id="filterMissions">SHOW MISSIONS</button>
+
+        <div class="table-wrap" style="margin-top:20px">
+          <table>
+            <thead><tr><th>Title</th><th>Category</th><th>Difficulty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="missionRows"></tbody>
+          </table>
+        </div>
+
+        <button id="newMissionBtn">＋ CREATE MISSION FOR THIS DATE</button>
+      </div>
+    </section>
   </section>
 </main>
 
 <div class="watermark">Anirudh Binu</div>
 
 <script>
+/* YOUR PUBLIC SUPABASE CONFIG */
 const SUPABASE_URL = "https://ybswkkdzvlgkniuftffv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wFDBBh6ZLbhirAn53XhYHA_Z0Tkz4Da";
 
-const client = window.supabase.createClient(
+const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
 
-const login = document.getElementById("login");
-const dashboard = document.getElementById("dashboard");
-const message = document.getElementById("message");
-const loginBtn = document.getElementById("loginBtn");
+let dashboardData = {
+  players: [],
+  challenges: [],
+  activity: [],
+  completions: 0,
+  player_count: 0
+};
+
+const $ = id => document.getElementById(id);
+
+function today() {
+  const d = new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-");
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#39;"
+  })[c]);
+}
 
 function showMessage(text) {
-  message.textContent = text;
+  $("appMessage").textContent = text;
 }
 
 function showLogin(text) {
-  login.classList.remove("hidden");
-  dashboard.classList.add("hidden");
-  showMessage(text);
+  $("loginPanel").classList.remove("hidden");
+  $("app").classList.add("hidden");
+  $("logoutBtn").classList.add("hidden");
+  $("loginMessage").textContent = text;
 }
 
-async function checkOwner() {
-  const { data: { session }, error } =
-    await client.auth.getSession();
+function showApp(email) {
+  $("loginPanel").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  $("logoutBtn").classList.remove("hidden");
+  $("welcomeEmail").textContent = email || "";
+}
+
+async function verifyOwner() {
+  const {data:{session},error} = await db.auth.getSession();
 
   if (error || !session) {
     showLogin("Please sign in.");
-    return;
+    return false;
   }
 
-  const { data, error: roleError } =
-    await client.rpc("is_owner");
+  const {data,error:roleError} = await db.rpc("is_owner");
 
-  if (roleError) {
-    showLogin("Verification error: " + roleError.message);
-    return;
+  if (roleError || data !== true) {
+    showLogin("Owner verification failed.");
+    return false;
   }
 
-  if (data !== true) {
-    showLogin("Owner access denied.");
-    return;
-  }
-
-  login.classList.add("hidden");
-  dashboard.classList.remove("hidden");
+  showApp(session.user.email);
+  return true;
 }
 
-loginBtn.addEventListener("click", async () => {
-  loginBtn.disabled = true;
-  showMessage("Signing in...");
+/* LOGIN */
+$("loginBtn").addEventListener("click", async () => {
+  $("loginBtn").disabled = true;
+  $("loginMessage").textContent = "Signing in...";
 
   try {
-    const { error } = await client.auth.signInWithPassword({
-      email: document.getElementById("email").value.trim(),
-      password: document.getElementById("password").value
+    const {error} = await db.auth.signInWithPassword({
+      email:$("email").value.trim(),
+      password:$("password").value
     });
 
     if (error) {
-      showMessage(error.message);
+      $("loginMessage").textContent = error.message;
       return;
     }
 
-    await checkOwner();
-  } catch (error) {
-    showMessage("Something went wrong: " + error.message);
+    if (await verifyOwner()) await loadDashboard();
+
+  } catch (e) {
+    $("loginMessage").textContent = e.message;
   } finally {
-    loginBtn.disabled = false;
+    $("loginBtn").disabled = false;
   }
 });
 
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await client.auth.signOut();
-  showLogin("You have signed out.");
+$("logoutBtn").addEventListener("click", async () => {
+  await db.auth.signOut();
+  showLogin("Signed out.");
 });
 
-checkOwner();
+/* NAVIGATION */
+function openSection(name) {
+  document.querySelectorAll(".section").forEach(s =>
+    s.classList.toggle("active",s.id === name)
+  );
+
+  document.querySelectorAll("[data-section]").forEach(b =>
+    b.classList.toggle("active",b.dataset.section === name)
+  );
+}
+
+document.querySelectorAll("[data-section]").forEach(button => {
+  button.addEventListener("click", () =>
+    openSection(button.dataset.section)
+  );
+});
+
+/* LOAD ALL OWNER DATA */
+async function loadDashboard() {
+  showMessage("Loading command center...");
+
+  const {data,error} = await db.rpc("owner_dashboard_data");
+
+  if (error) {
+    showMessage("Could not load data: " + error.message);
+    return;
+  }
+
+  dashboardData = data;
+
+  $("challengeCount").textContent = data.challenges.length;
+  $("playerCount").textContent = data.player_count;
+  $("activityCount").textContent = data.activity.length;
+  $("completionCount").textContent = data.completions;
+
+  renderChallenges();
+  renderPlayers();
+  renderActivity();
+  renderMissions();
+
+  showMessage("Dashboard data refreshed.");
+}
+
+$("refreshBtn").addEventListener("click",loadDashboard);
+
+/* CHALLENGE MANAGER */
+function clearChallengeForm() {
+  $("challengeForm").reset();
+  $("challengeId").value = "";
+  $("challengeDate").value = today();
+  $("saveBtn").textContent = "SAVE CHALLENGE";
+}
+
+$("clearBtn").addEventListener("click",clearChallengeForm);
+
+function renderChallenges() {
+  $("challengeRows").innerHTML = dashboardData.challenges.map(c => `
+    <tr>
+      <td>${escapeHTML(c.title)}</td>
+      <td>${escapeHTML(c.category)}</td>
+      <td>${escapeHTML(c.difficulty)}</td>
+      <td>${escapeHTML(c.challenge_date)}</td>
+      <td>${c.published ? "Published" : "Draft"}</td>
+      <td>
+        <button class="secondary" data-edit="${escapeHTML(c.id)}">EDIT</button>
+        <button class="danger" data-delete="${escapeHTML(c.id)}">DELETE</button>
+      </td>
+    </tr>
+  `).join("") || '<tr><td colspan="6">No challenges yet.</td></tr>';
+
+  $("challengeRows").querySelectorAll("[data-edit]").forEach(b => {
+    b.addEventListener("click",() => editChallenge(b.dataset.edit));
+  });
+
+  $("challengeRows").querySelectorAll("[data-delete]").forEach(b => {
+    b.addEventListener("click",() => deleteChallenge(b.dataset.delete));
+  });
+}
+
+function editChallenge(id) {
+  const c = dashboardData.challenges.find(x => x.id === id);
+  if (!c) return;
+
+  $("challengeId").value = c.id;
+  $("title").value = c.title || "";
+  $("category").value = c.category || "Riddles";
+  $("difficulty").value = c.difficulty || "Easy";
+  $("instructions").value = c.instructions || "";
+  $("hint").value = c.hint || "";
+  $("answer").value = "";
+  $("answer").placeholder = "Enter the new correct answer";
+  $("challengeDate").value = c.challenge_date || today();
+  $("published").checked = !!c.published;
+  $("saveBtn").textContent = "UPDATE CHALLENGE";
+
+  window.scrollTo({top:0,behavior:"smooth"});
+  showMessage("Editing challenge. Enter its answer again before saving.");
+}
+
+$("challengeForm").addEventListener("submit",async e => {
+  e.preventDefault();
+
+  const button = $("saveBtn");
+  button.disabled = true;
+  showMessage("Saving challenge...");
+
+  try {
+    const {data,error} = await db.rpc("owner_save_challenge",{
+      p_id:$("challengeId").value || null,
+      p_title:$("title").value.trim(),
+      p_category:$("category").value,
+      p_difficulty:$("difficulty").value,
+      p_instructions:$("instructions").value.trim(),
+      p_puzzle_data:{},
+      p_hint:$("hint").value.trim(),
+      p_answer:$("answer").value.trim(),
+      p_challenge_date:$("challengeDate").value,
+      p_published:$("published").checked
+    });
+
+    if (error) throw error;
+
+    clearChallengeForm();
+    await loadDashboard();
+    showMessage("Challenge saved successfully!");
+
+  } catch (err) {
+    showMessage("Save failed: " + err.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+async function deleteChallenge(id) {
+  if (!confirm("Delete this challenge and its answer?")) return;
+
+  const {data,error} = await db.rpc("owner_delete_challenge",{
+    p_id:id
+  });
+
+  if (error) {
+    showMessage("Delete failed: " + error.message);
+    return;
+  }
+
+  await loadDashboard();
+  showMessage(data ? "Challenge deleted." : "Challenge was not found.");
+}
+
+/* PLAYER MANAGER */
+function renderPlayers() {
+  const term = $("playerSearch").value.toLowerCase();
+
+  const players = dashboardData.players.filter(p =>
+    (p.username || "").toLowerCase().includes(term) ||
+    (p.display_name || "").toLowerCase().includes(term)
+  );
+
+  $("playerRows").innerHTML = players.map(p => `
+    <tr>
+      <td>${escapeHTML(p.username || "—")}</td>
+      <td>${escapeHTML(p.display_name || "—")}</td>
+      <td>${escapeHTML(p.bio || "—")}</td>
+      <td>${p.discoverable ? "Yes" : "No"}</td>
+      <td>${escapeHTML(p.created_at ? new Date(p.created_at).toLocaleDateString() : "—")}</td>
+    </tr>
+  `).join("") || '<tr><td colspan="5">No matching players.</td></tr>';
+}
+
+$("playerSearch").addEventListener("input",renderPlayers);
+
+/* ACTIVITY MONITOR */
+function renderActivity() {
+  $("activityRows").innerHTML = dashboardData.activity.map(a => `
+    <tr>
+      <td>${escapeHTML(a.player_id || "Unknown")}</td>
+      <td>${escapeHTML(a.event_type)}</td>
+      <td>${escapeHTML(a.challenge_id || "—")}</td>
+      <td>${escapeHTML(a.created_at ? new Date(a.created_at).toLocaleString() : "—")}</td>
+    </tr>
+  `).join("") || '<tr><td colspan="4">No activity recorded yet.</td></tr>';
+}
+
+/* DAILY MISSIONS */
+function renderMissions() {
+  const date = $("missionDate").value || today();
+
+  const missions = dashboardData.challenges.filter(c =>
+    c.challenge_date === date
+  );
+
+  $("missionRows").innerHTML = missions.map(c => `
+    <tr>
+      <td>${escapeHTML(c.title)}</td>
+      <td>${escapeHTML(c.category)}</td>
+      <td>${escapeHTML(c.difficulty)}</td>
+      <td>${c.published ? "Published" : "Draft"}</td>
+      <td>${escapeHTML(c.challenge_date)}</td>
+      <td><button class="secondary" data-mission-edit="${escapeHTML(c.id)}">EDIT</button></td>
+    </tr>
+  `).join("") || '<tr><td colspan="6">No missions scheduled for this date.</td></tr>';
+
+  $("missionRows").querySelectorAll("[data-mission-edit]").forEach(b => {
+    b.addEventListener("click",() => {
+      openSection("challenges");
+      editChallenge(b.dataset.missionEdit);
+    });
+  });
+}
+
+$("filterMissions").addEventListener("click",renderMissions);
+
+$("newMissionBtn").addEventListener("click",() => {
+  clearChallengeForm();
+  $("challengeDate").value = $("missionDate").value || today();
+  $("published").checked = true;
+  openSection("challenges");
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+/* STARTUP */
+$("challengeDate").value = today();
+$("missionDate").value = today();
+
+verifyOwner().then(ok => {
+  if (ok) loadDashboard();
+});
 </script>
 </body>
 </html>
