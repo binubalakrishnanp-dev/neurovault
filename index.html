@@ -52,8 +52,16 @@ footer{text-align:center;padding:25px;color:#60718f;font-size:11px;letter-spacin
     <p class="muted">Riddles. Mysteries. Logic. Think differently and unlock the vault.</p>
 
     <form id="authForm">
-      <input id="email" type="email" placeholder="Email address" required>
-      <input id="password" type="password" placeholder="Password" minlength="6" required>
+      <input id="username" type="text"
+placeholder="Choose a username (3–20 characters)"
+minlength="3" maxlength="20"
+autocomplete="username" required>
+
+<input id="email" type="email"
+placeholder="Email address" required>
+
+<input id="password" type="password"
+placeholder="Password" minlength="6" required>
       <button id="submitButton" type="submit" style="width:100%">CREATE ACCOUNT</button>
     </form>
 
@@ -106,7 +114,7 @@ footer{text-align:center;padding:25px;color:#60718f;font-size:11px;letter-spacin
       <div class="panel">
         <div class="card-title">PLAYER PROFILE</div>
         <h2>Your account</h2>
-        <p class="muted">Email: <span id="profileEmail"></span></p>
+        <p class="muted">Username: <span id="profileEmail"></span></p>
         <p class="muted">Public player profiles are coming soon.</p>
       </div>
     </section>
@@ -196,8 +204,13 @@ function showDashboard(user) {
   dashboard.style.display = "block";
 
   loadMissions();
-  document.getElementById("playerEmail").textContent = user.email || "Player";
-  document.getElementById("profileEmail").textContent = user.email || "Player";
+  const playerName =
+  user.user_metadata?.username ||
+  user.email?.split("@")[0] ||
+  "Player";
+
+  document.getElementById("playerEmail").textContent = playerName;
+  document.getElementById("profileEmail").textContent = playerName;
 
   document.getElementById("headerAction").innerHTML =
     '<button id="logoutButton">SIGN OUT</button>';
@@ -230,11 +243,26 @@ document.getElementById("authForm").addEventListener("submit", async (event) => 
   message.textContent = "Connecting...";
 
   const email = document.getElementById("email").value.trim();
+  const username = document.getElementById("username").value.trim().toLowerCase();
   const password = document.getElementById("password").value;
 
-  const result = isSignup
-    ? await client.auth.signUp({email, password})
-    : await client.auth.signInWithPassword({email, password});
+  if (isSignup && !/^[a-z0-9_]{3,20}$/.test(username)) {
+  message.textContent = "Username must be 3–20 characters using letters, numbers or underscores.";
+  return;
+}
+
+const result = isSignup
+  ? await client.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username: username,
+          display_name: username
+        }
+      }
+    })
+  : await client.auth.signInWithPassword({email, password});
 
   if (result.error) {
     message.textContent = result.error.message;
