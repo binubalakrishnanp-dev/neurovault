@@ -94,14 +94,13 @@ footer{text-align:center;padding:25px;color:#60718f;font-size:11px;letter-spacin
       <button data-section="friends">FRIENDS</button>
     </div>
 
-    <section id="missions" class="section active">
-      <div class="panel challenge">
-        <div class="card-title">TODAY'S MISSION</div>
-        <h2>THE VAULT IS WAITING</h2>
-        <p class="muted">Daily puzzles are coming soon. The owner will add challenges here.</p>
-        <button disabled style="opacity:.5;cursor:not-allowed">MISSIONS COMING SOON</button>
-      </div>
-    </section>
+<section id="missions" class="section active">
+  <div class="card-title">AVAILABLE MISSIONS</div>
+  <h2>TODAY'S CHALLENGES</h2>
+  <div id="missionList">
+    <p class="muted">Loading missions...</p>
+  </div>
+</section>
 
     <section id="profile" class="section">
       <div class="panel">
@@ -136,13 +135,67 @@ const client = window.supabase.createClient(
 
 let isSignup = true;
 
-const authPage = document.getElementById("authPage");
-const dashboard = document.getElementById("dashboard");
-const message = document.getElementById("message");
+async function loadMissions() {
+  const list = document.getElementById("missionList");
+  list.textContent = "Loading missions...";
+
+  const now = new Date();
+  const today =
+    now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
+
+  const { data, error } = await client
+    .from("challenges")
+    .select("id,title,category,difficulty,instructions,hint,challenge_date")
+    .eq("published", true)
+    .eq("challenge_date", today)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    list.textContent = "Could not load missions: " + error.message;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    list.textContent = "No missions published for today yet. Check back soon!";
+    return;
+  }
+
+  list.replaceChildren();
+
+  data.forEach(challenge => {
+    const card = document.createElement("div");
+    card.className = "panel challenge";
+
+    const title = document.createElement("h2");
+    title.textContent = challenge.title;
+
+    const details = document.createElement("p");
+    details.className = "muted";
+    details.textContent =
+      challenge.category + " • " + challenge.difficulty;
+
+    const instructions = document.createElement("p");
+    instructions.className = "muted";
+    instructions.textContent = challenge.instructions;
+
+    const hint = document.createElement("p");
+    hint.className = "muted";
+    hint.textContent = challenge.hint
+      ? "Hint: " + challenge.hint
+      : "No hint available yet.";
+
+    card.append(title, details, instructions, hint);
+    list.appendChild(card);
+  });
+}
 
 function showDashboard(user) {
   authPage.style.display = "none";
   dashboard.style.display = "block";
+
+  loadMissions();
   document.getElementById("playerEmail").textContent = user.email || "Player";
   document.getElementById("profileEmail").textContent = user.email || "Player";
 
